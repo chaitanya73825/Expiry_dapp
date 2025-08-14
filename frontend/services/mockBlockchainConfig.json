@@ -1,0 +1,114 @@
+{
+  "mockBlockchain": {
+    "contractAddress": "0xMOCK1234567890abcdef",
+    "network": "mock-devnet",
+    "networkUrl": "mock://localhost:3000",
+    "faucetUrl": "mock://faucet.localhost:3000",
+    "transactionDelay": 1000,
+    "connectionDelay": 500,
+    "revokeDelay": 800
+  },
+  "defaultPermissions": [
+    {
+      "id": "test-permission-1",
+      "recipient": "0xtest123",
+      "owner": "0xowner456",
+      "fileName": "test-document.pdf",
+      "fileSize": 1024000,
+      "fileType": "application/pdf",
+      "accessLevel": "read",
+      "duration": "24h",
+      "expiresAt": "2025-08-15T00:00:00.000Z",
+      "createdAt": "2025-08-14T00:00:00.000Z",
+      "transactionHash": "0xmocktest123",
+      "blockNumber": 12345,
+      "onChain": true
+    },
+    {
+      "id": "test-permission-2", 
+      "recipient": "0xtest456",
+      "owner": "0xowner789",
+      "fileName": "sample-contract.docx",
+      "fileSize": 2048000,
+      "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "accessLevel": "full",
+      "duration": "7d",
+      "expiresAt": "2025-08-21T00:00:00.000Z",
+      "createdAt": "2025-08-14T00:00:00.000Z",
+      "transactionHash": "0xmocktest456",
+      "blockNumber": 12346,
+      "onChain": true
+    }
+  ],
+  "transactionTemplates": {
+    "grantPermission": {
+      "type": "grant_permission_with_file",
+      "module": "message_board",
+      "function": "grant_permission_with_file",
+      "arguments": ["recipient", "amount", "expiry", "file_name", "file_size", "file_type"],
+      "gasLimit": 10000,
+      "gasPrice": 100
+    },
+    "revokePermission": {
+      "type": "revoke_permission",
+      "module": "message_board", 
+      "function": "revoke_permission",
+      "arguments": ["permission_id"],
+      "gasLimit": 5000,
+      "gasPrice": 100
+    }
+  },
+  "responses": {
+    "success": {
+      "grantPermission": {
+        "success": true,
+        "message": "Permission granted successfully",
+        "transactionHashPrefix": "0xmock"
+      },
+      "revokePermission": {
+        "success": true,
+        "message": "Permission revoked successfully", 
+        "transactionHashPrefix": "0xrevoke"
+      },
+      "loadPermissions": {
+        "success": true,
+        "message": "Permissions loaded successfully"
+      }
+    },
+    "error": {
+      "networkError": {
+        "success": false,
+        "error": "Network connection failed",
+        "code": "NETWORK_ERROR"
+      },
+      "permissionNotFound": {
+        "success": false,
+        "error": "Permission not found",
+        "code": "PERMISSION_NOT_FOUND"
+      },
+      "insufficientFunds": {
+        "success": false,
+        "error": "Insufficient funds for transaction",
+        "code": "INSUFFICIENT_FUNDS"
+      }
+    }
+  },
+  "debugging": {
+    "enableLogs": true,
+    "logLevel": "info",
+    "logPrefix": "🧪 Mock Blockchain:",
+    "showTransactionDetails": true,
+    "showNetworkDelays": true,
+    "showPersistenceOperations": true,
+    "enableStorageValidation": true
+  },
+  "persistence": {
+    "enabled": true,
+    "storageKey": "expiryX_mock_blockchain_permissions",
+    "autoSave": true,
+    "autoLoad": true,
+    "backupKey": "expiryX_mock_blockchain_permissions_backup",
+    "validateOnLoad": true,
+    "clearOnError": false
+  }
+}

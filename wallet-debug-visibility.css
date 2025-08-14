@@ -1,0 +1,101 @@
+/* Wallet Debug Visibility Overrides */
+/* This CSS ensures any wallet debugging information is clearly visible */
+
+/* Target any element that might contain wallet debug info */
+*[style*="color: white"],
+*[style*="color: #fff"], 
+*[style*="color: #ffffff"],
+*[style*="color: rgb(255, 255, 255)"],
+*[style*="color: rgba(255, 255, 255"],
+div:contains("Connected:"),
+div:contains("Account: 0x"),
+div:contains("signAndSubmitTransaction"),
+div:contains("Wallet Debug"),
+div:contains("Test Wallet Transaction") {
+  color: #ffffff !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(15px) !important;
+  margin: 4px 0 !important;
+  font-weight: 600 !important;
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Specific fixes for Aptos wallet elements */
+[class*="aptos-wallet"], 
+[class*="petra-wallet"],
+[class*="pontem-wallet"],
+[id*="aptos"], [id*="petra"], [id*="pontem"] {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #1e3c72, #2a5298) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8) !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+}
+
+/* Success indicators and checkmarks */
+.success, .connected, [class*="success"], [class*="connected"] {
+  color: #00ff88 !important;
+  background: rgba(0, 50, 25, 0.9) !important;
+  text-shadow: 0 0 6px rgba(0, 255, 136, 0.6) !important;
+}
+
+/* Account addresses */
+[class*="address"], [id*="address"] {
+  color: #00ff88 !important;
+  background: rgba(0, 0, 0, 0.9) !important;
+  font-family: 'Courier New', monospace !important;
+  border: 1px solid rgba(0, 255, 136, 0.4) !important;
+  text-shadow: 0 0 4px rgba(0, 255, 136, 0.4) !important;
+}
+
+/* Debug panels or containers */
+[class*="debug"], [id*="debug"] {
+  background: rgba(0, 0, 0, 0.9) !important;
+  border: 2px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  backdrop-filter: blur(20px) !important;
+}
+
+[class*="debug"] * {
+  color: #ffffff !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Wallet status elements that might be injected */
+.wallet-status, .connection-status, .account-info {
+  background: linear-gradient(135deg, rgba(30, 60, 114, 0.9), rgba(42, 82, 152, 0.9)) !important;
+  color: #ffffff !important;
+  padding: 12px 16px !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  backdrop-filter: blur(15px) !important;
+}
+
+/* Override any inline styles that might cause invisibility */
+div[style*="color: white"][style*="background: white"],
+span[style*="color: white"][style*="background: white"],
+p[style*="color: white"][style*="background: white"] {
+  color: #000000 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ensure high contrast for any potentially invisible text */
+/* Additional rules can be added here as needed */
+
+/* Force visibility for common wallet debug patterns */
+pre, code {
+  background: rgba(0, 0, 0, 0.8) !important;
+  color: #00ff88 !important;
+  padding: 8px !important;
+  border-radius: 4px !important;
+  border: 1px solid rgba(0, 255, 136, 0.3) !important;
+}

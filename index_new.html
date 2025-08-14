@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ExpiryX: Token Permission Manager</title>
+  <link rel="icon" type="image/x-icon" href="/public/aptos.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@aptos-labs/ts-sdk@latest/dist/browser/index.js"></script>
+  <style>
+    :root {
+      /* Light Theme */
+      --bg-primary: #ffffff;
+      --bg-secondary: #f8fafc;
+      --bg-card: #ffffff;
+      --text-primary: #1e293b;
+      --text-secondary: #64748b;
+      --text-muted: #94a3b8;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --accent-light: #dbeafe;
+      --success: #10b981;
+      --success-light: #d1fae5;
+      --warning: #f59e0b;
+      --warning-light: #fef3c7;
+      --error: #ef4444;
+      --error-light: #fee2e2;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --shadow-lg: rgba(0, 0, 0, 0.15);
+    }
+    
+    [data-theme="dark"] {
+      /* Dark Theme */
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #334155;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --border: #475569;
+      --border-hover: #64748b;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --accent-light: #1e3a8a;
+      --success: #10b981;
+      --success-light: #064e3b;
+      --warning: #f59e0b;
+      --warning-light: #92400e;
+      --error: #ef4444;
+      --error-light: #991b1b;
+      --shadow: rgba(0, 0, 0, 0.3);
+      --shadow-lg: rgba(0, 0, 0, 0.4);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      min-height: 100vh;
+      transition: all 0.3s ease;
+    }
+    
+    /* Header */
+    .header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      box-shadow: 0 1px 3px var(--shadow);
+    }
+    
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+    }
+    
+    /* Navigation */
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    
+    .nav-btn:hover {
+      color: var(--text-primary);
+      background: var(--bg-secondary);
+      border-color: var(--border);
+    }
+    
+    .nav-btn.active {
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+    
+    /* Wallet Connection */
+    .wallet-section {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .wallet-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .wallet-btn:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .wallet-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .wallet-address {
+      padding: 0.5rem 1rem;
+      background: var(--success-light);
+      color: var(--success);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    /* Settings Dropdown */
+    .settings-dropdown {
+      position: relative;
+    }
+    
+    .settings-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    
+    .settings-btn:hover {
+      background: var(--border);
+      transform: rotate(90deg);
+    }
+    
+    .settings-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px var(--shadow-lg);
+      min-width: 280px;
+      z-index: 1000;
+      display: none;
+      overflow: hidden;
+    }
+    
+    .settings-menu.show {
+      display: block;
+      animation: slideIn 0.2s ease;
+    }
+    
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .settings-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .settings-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .settings-section:last-child {
+      border-bottom: none;
+    }
+    
+    .settings-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .settings-input {
+      width: 100%;
+      padding: 0.5rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-primary);
+      font-size: 0.875rem;
+    }
+    
+    .settings-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+    }
+    
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .toggle-switch.active {
+      background: var(--accent);
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .toggle-switch.active .toggle-slider {
+      transform: translateX(20px);
+    }
+    
+    /* Main Content */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+    }
+    
+    .welcome-section {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+    
+    .welcome-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+    }
+    
+    .welcome-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    
+    /* Permission Form */
+    .permission-form {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    
+    .form-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .form-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    
+    .form-input, .form-select {
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    
+    .form-select {
+      cursor: pointer;
+      background-color: var(--bg-secondary);
+    }
+    
+    .form-select option {
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+    }
+    
+    .permission-type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .permission-type {
+      padding: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+    }
+    
+    .permission-type:hover {
+      border-color: var(--accent);
+    }
+    
+    .permission-type.active {
+      border-color: var(--accent);
+      background: var(--accent-light);
+    }
+    
+    .permission-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .permission-name {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .permission-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+    
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+      background: var(--bg-secondary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+    
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    /* Permissions List */
+    .permissions-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+    
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .permissions-list {
+      display: grid;
+      gap: 1rem;
+    }
+    
+    .permission-card {
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: center;
+    }
+    
+    .permission-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    
+    .permission-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .permission-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    
+    .permission-value {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .permission-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .btn-sm {
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+    }
+    
+    .btn-danger {
+      background: var(--error);
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+    }
+    
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Loading Animation */
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid transparent;
+      border-top: 2px solid currentColor;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal.show {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 50px var(--shadow-lg);
+    }
+    
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: between;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .modal-body {
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    
+    .modal-footer {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+    }
+    
+    /* Toast Notifications */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 10px 30px var(--shadow-lg);
+      z-index: 1100;
+      min-width: 300px;
+      animation: slideInRight 0.3s ease;
+    }
+    
+    .toast.success {
+      border-left: 4px solid var(--success);
+    }
+    
+    .toast.error {
+      border-left: 4px solid var(--error);
+    }
+    
+    .toast.warning {
+      border-left: 4px solid var(--warning);
+    }
+    
+    .toast-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .toast-body {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-content {
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      .nav {
+        order: -1;
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .main {
+        padding: 1rem;
+      }
+      
+      .welcome-title {
+        font-size: 2rem;
+      }
+      
+      .permission-info {
+        grid-template-columns: 1fr;
+      }
+      
+      .permission-card {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+    
+    /* Status indicators */
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .status-active {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    
+    .status-expired {
+      background: var(--error-light);
+      color: var(--error);
+    }
+    
+    .status-pending {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+  </style>
+</head>
+<body data-theme="light">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="#" class="logo">
+        <div class="logo-icon">Ex</div>
+        ExpiryX
+      </a>
+      
+      <nav class="nav">
+        <a href="#" class="nav-btn active" onclick="showSection('dashboard')">
+          <span>🏠</span> Dashboard
+        </a>
+        <a href="#" class="nav-btn" onclick="showSection('about')">
+          <span>ℹ️</span> About
+        </a>
+        <a href="#" class="nav-btn" onclick="showTransactionHistory()">
+          <span>📈</span> History
+        </a>
+      </nav>
+      
+      <div class="wallet-section">
+        <div class="wallet-status" id="walletStatus">
+          <button class="wallet-btn" id="connectWalletBtn" onclick="connectWallet()">
+            <span>👛</span> Connect Wallet
+          </button>
+        </div>
+        
+        <div class="settings-dropdown">
+          <button class="settings-btn" onclick="toggleSettings()">
+            <span>⚙️</span>
+          </button>
+          <div class="settings-menu" id="settingsMenu">
+            <div class="settings-header">Settings</div>
+            <div class="settings-section">
+              <label class="settings-label">Username</label>
+              <input type="text" class="settings-input" id="usernameInput" placeholder="Enter your username" onchange="saveSettings()">
+            </div>
+            <div class="settings-section">
+              <label class="settings-label">Email</label>
+              <input type="email" class="settings-input" id="emailInput" placeholder="your.email@example.com" onchange="saveSettings()">
+            </div>
+            <div class="settings-section">
+              <div class="theme-toggle">
+                <span>Dark Theme</span>
+                <div class="toggle-switch" id="themeToggle" onclick="toggleTheme()">
+                  <div class="toggle-slider"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Dashboard Section -->
+    <div id="dashboardSection" class="section active">
+      <div class="welcome-section">
+        <h1 class="welcome-title">Token Permission Manager</h1>
+        <p class="welcome-subtitle">
+          Securely manage time-limited token permissions on the Aptos blockchain. 
+          Grant controlled access that automatically expires.
+        </p>
+      </div>
+
+      <!-- Permission Grant Form -->
+      <div class="permission-form">
+        <h2 class="form-title">Grant New Permission</h2>
+        <form id="permissionForm" onsubmit="grantPermission(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Spender Address</label>
+              <input type="text" class="form-input" id="spenderAddress" 
+                placeholder="0x..." required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Token Amount</label>
+              <input type="number" class="form-input" id="tokenAmount" 
+                placeholder="0.00" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Expiry Duration</label>
+              <select class="form-select" id="expiryDuration" required>
+                <option value="">Select duration</option>
+                <option value="300">5 minutes</option>
+                <option value="1800">30 minutes</option>
+                <option value="3600">1 hour</option>
+                <option value="21600">6 hours</option>
+                <option value="86400">1 day</option>
+                <option value="604800">1 week</option>
+                <option value="2592000">1 month</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="permission-type-grid">
+            <div class="permission-type active" onclick="selectPermissionType(this, 'full')" data-type="full">
+              <div class="permission-icon">🔓</div>
+              <div class="permission-name">Full Access</div>
+              <div class="permission-desc">Complete spending permissions</div>
+            </div>
+            <div class="permission-type" onclick="selectPermissionType(this, 'limited')" data-type="limited">
+              <div class="permission-icon">🔒</div>
+              <div class="permission-name">Limited</div>
+              <div class="permission-desc">Restricted amount only</div>
+            </div>
+            <div class="permission-type" onclick="selectPermissionType(this, 'readonly')" data-type="readonly">
+              <div class="permission-icon">👁️</div>
+              <div class="permission-name">Read Only</div>
+              <div class="permission-desc">View permissions only</div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" onclick="clearForm()">
+              Clear
+            </button>
+            <button type="submit" class="btn btn-primary" id="grantBtn">
+              <span>✨</span> Grant Permission
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Active Permissions -->
+      <div class="permissions-section">
+        <div class="section-header">
+          <h2 class="section-title">Active Permissions</h2>
+          <button class="btn btn-secondary btn-sm" onclick="refreshPermissions()">
+            <span>🔄</span> Refresh
+          </button>
+        </div>
+        <div class="permissions-list" id="permissionsList">
+          <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>No Permissions Yet</h3>
+            <p>Grant your first token permission to get started</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Section -->
+    <div id="aboutSection" class="section" style="display: none;">
+      <div class="permission-form">
+        <h2 class="form-title">About ExpiryX</h2>
+        <div style="line-height: 1.8; color: var(--text-secondary);">
+          <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem 0;">🚀 What is ExpiryX?</h3>
+          <p>ExpiryX is a revolutionary token permission management system built on the Aptos blockchain. It allows you to grant time-limited spending permissions that automatically expire, providing enhanced security for your digital assets.</p>
+          
+          <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem 0;">📋 How to Use</h3>
+          <ol style="padding-left: 1.5rem;">
+            <li><strong>Connect Your Wallet:</strong> Click the "Connect Wallet" button and select your Petra wallet.</li>
+            <li><strong>Grant Permission:</strong> Fill in the spender's address, token amount, and expiry duration.</li>
+            <li><strong>Select Permission Type:</strong> Choose between Full Access, Limited, or Read Only permissions.</li>
+            <li><strong>Confirm Transaction:</strong> Review and sign the transaction in your wallet.</li>
+            <li><strong>Monitor & Manage:</strong> View active permissions and revoke them if needed.</li>
+          </ol>
+          
+          <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem 0;">🔐 Permission Types</h3>
+          <ul style="padding-left: 1.5rem;">
+            <li><strong>Full Access (🔓):</strong> Complete spending permissions for the specified amount</li>
+            <li><strong>Limited (🔒):</strong> Restricted permissions with additional safeguards</li>
+            <li><strong>Read Only (👁️):</strong> View-only access without spending capabilities</li>
+          </ul>
+          
+          <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem 0;">⚡ Key Features</h3>
+          <ul style="padding-left: 1.5rem;">
+            <li>🕐 <strong>Time-Limited:</strong> Permissions automatically expire</li>
+            <li>🔒 <strong>Secure:</strong> Built on Aptos blockchain technology</li>
+            <li>📱 <strong>User-Friendly:</strong> Simple and intuitive interface</li>
+            <li>🎯 <strong>Precise Control:</strong> Granular permission management</li>
+            <li>🔄 <strong>Revocable:</strong> Cancel permissions before expiry</li>
+          </ul>
+          
+          <h3 style="color: var(--text-primary); margin: 1.5rem 0 1rem 0;">🛡️ Security</h3>
+          <p>Your security is our priority. All transactions are executed on-chain, ensuring transparency and immutability. Private keys never leave your wallet, and all permissions are cryptographically secured.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+      </div>
+      <div class="modal-body" id="modalBody">
+        Modal content goes here
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" id="modalConfirmBtn" onclick="confirmModal()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Aptos client
+    const APTOS_NETWORK = 'devnet';
+    const MODULE_ADDRESS = '0xf60a36e79ba896f56076f6ea025d01eb8ca075c517891b3113a1ac92cac02105';
+    
+    // Global state
+    let isWalletConnected = false;
+    let connectedAccount = null;
+    let aptosClient = null;
+    let permissions = [];
+    let selectedPermissionType = 'full';
+    let currentUser = {
+      username: '',
+      email: '',
+      theme: 'light'
+    };
+
+    // Initialize application
+    async function initApp() {
+      await initializeAptosClient();
+      loadSettings();
+      updateWalletUI();
+    }
+
+    // Initialize Aptos client
+    async function initializeAptosClient() {
+      if (aptosClient) return aptosClient;
+      
+      try {
+        if (typeof window.Aptos !== 'undefined' && window.Aptos.Aptos) {
+          aptosClient = new window.Aptos.Aptos({
+            network: window.Aptos.Network.DEVNET
+          });
+          console.log('Aptos client initialized successfully');
+        } else {
+          aptosClient = {
+            view: async (payload) => {
+              const response = await fetch(`https://fullnode.devnet.aptoslabs.com/v1/view`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              return await response.json();
+            },
+            waitForTransaction: async (options) => {
+              const response = await fetch(`https://fullnode.devnet.aptoslabs.com/v1/transactions/by_hash/${options.transactionHash}`);
+              return await response.json();
+            }
+          };
+          console.log('Aptos client initialized with fallback method');
+        }
+      } catch (error) {
+        console.error('Failed to initialize Aptos client:', error);
+        aptosClient = {
+          view: async () => { throw new Error('Aptos client not available'); },
+          waitForTransaction: async () => { throw new Error('Aptos client not available'); }
+        };
+      }
+      
+      return aptosClient;
+    }
+
+    // Wallet functions
+    async function connectWallet() {
+      if (!window.aptos) {
+        showToast('Wallet Not Found', 'Please install Petra wallet extension', 'error');
+        return;
+      }
+
+      try {
+        showLoadingOnButton('connectWalletBtn', true);
+        const response = await window.aptos.connect();
+        connectedAccount = response;
+        isWalletConnected = true;
+        updateWalletUI();
+        await refreshPermissions();
+        showToast('Wallet Connected', `Connected to ${response.address.slice(0, 6)}...${response.address.slice(-4)}`, 'success');
+      } catch (error) {
+        console.error('Failed to connect wallet:', error);
+        showToast('Connection Failed', error.message, 'error');
+      } finally {
+        showLoadingOnButton('connectWalletBtn', false);
+      }
+    }
+
+    async function disconnectWallet() {
+      try {
+        await window.aptos.disconnect();
+        isWalletConnected = false;
+        connectedAccount = null;
+        permissions = [];
+        updateWalletUI();
+        updatePermissionsList();
+        showToast('Wallet Disconnected', 'Successfully disconnected from wallet', 'success');
+      } catch (error) {
+        console.error('Failed to disconnect wallet:', error);
+      }
+    }
+
+    function updateWalletUI() {
+      const walletStatus = document.getElementById('walletStatus');
+      
+      if (isWalletConnected && connectedAccount) {
+        const address = connectedAccount.address;
+        const shortAddress = `${address.slice(0, 6)}...${address.slice(-4)}`;
+        walletStatus.innerHTML = `
+          <div class="wallet-address">${currentUser.username || shortAddress}</div>
+          <button class="btn btn-secondary btn-sm" onclick="disconnectWallet()">
+            <span>🚪</span> Disconnect
+          </button>
+        `;
+      } else {
+        walletStatus.innerHTML = `
+          <button class="wallet-btn" id="connectWalletBtn" onclick="connectWallet()">
+            <span>👛</span> Connect Wallet
+          </button>
+        `;
+      }
+    }
+
+    // Permission management
+    async function grantPermission(event) {
+      event.preventDefault();
+      
+      if (!isWalletConnected || !connectedAccount) {
+        showToast('Wallet Required', 'Please connect your wallet first', 'error');
+        return;
+      }
+
+      const spender = document.getElementById('spenderAddress').value;
+      const amount = parseFloat(document.getElementById('tokenAmount').value);
+      const duration = parseInt(document.getElementById('expiryDuration').value);
+
+      if (!spender || !amount || !duration) {
+        showToast('Invalid Input', 'Please fill in all required fields', 'error');
+        return;
+      }
+
+      if (!spender.startsWith('0x') || spender.length < 10) {
+        showToast('Invalid Address', 'Please enter a valid Aptos address', 'error');
+        return;
+      }
+
+      try {
+        showLoadingOnButton('grantBtn', true);
+        
+        if (!aptosClient) {
+          await initializeAptosClient();
+        }
+
+        const payload = {
+          function: `${MODULE_ADDRESS}::expiry_x::grant_permission`,
+          arguments: [
+            spender,
+            (amount * 100000000).toString(), // Convert to octas
+            (Math.floor(Date.now() / 1000) + duration).toString() // Expiry timestamp
+          ],
+          type_arguments: []
+        };
+
+        const response = await window.aptos.signAndSubmitTransaction(payload);
+        const txHash = response.hash || response;
+
+        showToast('Transaction Submitted', `Hash: ${txHash}`, 'success');
+
+        // Wait for confirmation
+        await aptosClient.waitForTransaction({ transactionHash: txHash });
+
+        // Add to local permissions
+        permissions.push({
+          spender: spender.slice(0, 7) + '...' + spender.slice(-3),
+          amount: amount,
+          expiry: getDurationText(duration),
+          type: selectedPermissionType,
+          txHash: txHash,
+          status: 'active'
+        });
+
+        updatePermissionsList();
+        clearForm();
+        showToast('Permission Granted', 'Successfully granted token permission', 'success');
+
+      } catch (error) {
+        console.error('Transaction failed:', error);
+        showToast('Transaction Failed', error.message, 'error');
+      } finally {
+        showLoadingOnButton('grantBtn', false);
+      }
+    }
+
+    async function revokePermission(spender) {
+      if (!isWalletConnected || !connectedAccount) {
+        showToast('Wallet Required', 'Please connect your wallet first', 'error');
+        return;
+      }
+
+      showModal(
+        'Revoke Permission',
+        `Are you sure you want to revoke the permission for ${spender}? This action cannot be undone.`,
+        async () => {
+          try {
+            if (!aptosClient) {
+              await initializeAptosClient();
+            }
+
+            // Find permission ID (simplified for demo)
+            const payload = {
+              function: `${MODULE_ADDRESS}::expiry_x::revoke_permission`,
+              arguments: ['1'], // Simplified - would need actual permission ID
+              type_arguments: []
+            };
+
+            const response = await window.aptos.signAndSubmitTransaction(payload);
+            const txHash = response.hash || response;
+
+            await aptosClient.waitForTransaction({ transactionHash: txHash });
+
+            // Remove from local permissions
+            permissions = permissions.filter(p => p.spender !== spender);
+            updatePermissionsList();
+            
+            showToast('Permission Revoked', 'Successfully revoked permission', 'success');
+          } catch (error) {
+            console.error('Revoke failed:', error);
+            showToast('Revoke Failed', error.message, 'error');
+          }
+        }
+      );
+    }
+
+    async function refreshPermissions() {
+      if (!isWalletConnected || !connectedAccount) return;
+
+      try {
+        // Load permissions from blockchain (simplified)
+        updatePermissionsList();
+        showToast('Permissions Updated', 'Successfully refreshed permissions', 'success');
+      } catch (error) {
+        console.error('Failed to refresh permissions:', error);
+        showToast('Refresh Failed', error.message, 'error');
+      }
+    }
+
+    function updatePermissionsList() {
+      const list = document.getElementById('permissionsList');
+      
+      if (permissions.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>No Permissions Yet</h3>
+            <p>Grant your first token permission to get started</p>
+          </div>
+        `;
+        return;
+      }
+
+      list.innerHTML = permissions.map(p => `
+        <div class="permission-card">
+          <div class="permission-info">
+            <div class="permission-field">
+              <div class="permission-label">Spender</div>
+              <div class="permission-value">${p.spender}</div>
+            </div>
+            <div class="permission-field">
+              <div class="permission-label">Amount</div>
+              <div class="permission-value">${p.amount} APT</div>
+            </div>
+            <div class="permission-field">
+              <div class="permission-label">Type</div>
+              <div class="permission-value">
+                ${p.type === 'full' ? '🔓 Full Access' : 
+                  p.type === 'limited' ? '🔒 Limited' : '👁️ Read Only'}
+              </div>
+            </div>
+            <div class="permission-field">
+              <div class="permission-label">Expires In</div>
+              <div class="permission-value">${p.expiry}</div>
+            </div>
+            <div class="permission-field">
+              <div class="permission-label">Status</div>
+              <div class="status-indicator status-${p.status}">
+                <div class="status-dot"></div>
+                ${p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+              </div>
+            </div>
+          </div>
+          <div class="permission-actions">
+            <button class="btn btn-danger btn-sm" onclick="revokePermission('${p.spender}')">
+              <span>🗑️</span> Revoke
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // UI helper functions
+    function selectPermissionType(element, type) {
+      document.querySelectorAll('.permission-type').forEach(el => el.classList.remove('active'));
+      element.classList.add('active');
+      selectedPermissionType = type;
+    }
+
+    function clearForm() {
+      document.getElementById('permissionForm').reset();
+      document.querySelectorAll('.permission-type').forEach(el => el.classList.remove('active'));
+      document.querySelector('.permission-type[data-type="full"]').classList.add('active');
+      selectedPermissionType = 'full';
+    }
+
+    function showSection(sectionName) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.style.display = 'none';
+      });
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      document.getElementById(sectionName + 'Section').style.display = 'block';
+      event.target.classList.add('active');
+    }
+
+    function showTransactionHistory() {
+      showModal(
+        'Transaction History',
+        `
+        <p>To view your ExpiryX transaction history:</p>
+        <ol>
+          <li>Open your Petra wallet extension</li>
+          <li>Go to "Activity" tab</li>
+          <li>Look for transactions to/from: <code>${MODULE_ADDRESS}</code></li>
+          <li>Or visit <a href="https://explorer.aptoslabs.com/account/${connectedAccount?.address}?network=${APTOS_NETWORK}" target="_blank">Aptos Explorer</a></li>
+        </ol>
+        <p><em>Full history tracking feature is coming soon!</em></p>
+        `
+      );
+    }
+
+    // Settings functions
+    function toggleSettings() {
+      const menu = document.getElementById('settingsMenu');
+      menu.classList.toggle('show');
+      
+      // Close on click outside
+      document.addEventListener('click', function closeSettings(e) {
+        if (!e.target.closest('.settings-dropdown')) {
+          menu.classList.remove('show');
+          document.removeEventListener('click', closeSettings);
+        }
+      });
+    }
+
+    function toggleTheme() {
+      const toggle = document.getElementById('themeToggle');
+      const body = document.body;
+      
+      if (body.getAttribute('data-theme') === 'dark') {
+        body.setAttribute('data-theme', 'light');
+        toggle.classList.remove('active');
+        currentUser.theme = 'light';
+      } else {
+        body.setAttribute('data-theme', 'dark');
+        toggle.classList.add('active');
+        currentUser.theme = 'dark';
+      }
+      
+      saveSettings();
+    }
+
+    function saveSettings() {
+      currentUser.username = document.getElementById('usernameInput').value;
+      currentUser.email = document.getElementById('emailInput').value;
+      
+      localStorage.setItem('expiryXSettings', JSON.stringify(currentUser));
+      updateWalletUI();
+      showToast('Settings Saved', 'Your preferences have been saved', 'success');
+    }
+
+    function loadSettings() {
+      const saved = localStorage.getItem('expiryXSettings');
+      if (saved) {
+        currentUser = JSON.parse(saved);
+        document.getElementById('usernameInput').value = currentUser.username || '';
+        document.getElementById('emailInput').value = currentUser.email || '';
+        
+        if (currentUser.theme === 'dark') {
+          document.body.setAttribute('data-theme', 'dark');
+          document.getElementById('themeToggle').classList.add('active');
+        }
+      }
+    }
+
+    // Modal functions
+    function showModal(title, body, confirmCallback = null) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = body;
+      document.getElementById('modal').classList.add('show');
+      
+      const confirmBtn = document.getElementById('modalConfirmBtn');
+      if (confirmCallback) {
+        confirmBtn.style.display = 'block';
+        confirmBtn.onclick = () => {
+          confirmCallback();
+          closeModal();
+        };
+      } else {
+        confirmBtn.style.display = 'none';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('show');
+    }
+
+    // Toast notifications
+    function showToast(title, message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <div class="toast-header">
+          <span>${title}</span>
+          <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">×</button>
+        </div>
+        <div class="toast-body">${message}</div>
+      `;
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.parentNode.removeChild(toast);
+        }
+      }, 5000);
+    }
+
+    // Loading states
+    function showLoadingOnButton(buttonId, loading) {
+      const button = document.getElementById(buttonId);
+      if (loading) {
+        button.disabled = true;
+        button.innerHTML = '<div class="loading-spinner"></div> Loading...';
+      } else {
+        button.disabled = false;
+        if (buttonId === 'connectWalletBtn') {
+          button.innerHTML = '<span>👛</span> Connect Wallet';
+        } else if (buttonId === 'grantBtn') {
+          button.innerHTML = '<span>✨</span> Grant Permission';
+        }
+      }
+    }
+
+    // Utility functions
+    function getDurationText(seconds) {
+      if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours`;
+      return `${Math.floor(seconds / 86400)} days`;
+    }
+
+    // Initialize app when page loads
+    window.addEventListener('load', initApp);
+
+    // Close modal on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+        document.getElementById('settingsMenu').classList.remove('show');
+      }
+    });
+  </script>
+</body>
+</html>

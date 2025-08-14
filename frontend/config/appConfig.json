@@ -1,0 +1,97 @@
+{
+  "blockchain": {
+    "real": {
+      "contractAddress": "0x...",
+      "network": "devnet",
+      "networkUrl": "https://fullnode.devnet.aptoslabs.com",
+      "faucetUrl": "https://faucet.devnet.aptoslabs.com",
+      "moduleAddress": "message_board_addr",
+      "gasLimit": 10000,
+      "gasPrice": 100
+    },
+    "mock": {
+      "contractAddress": "0xMOCK1234567890abcdef",
+      "network": "mock-devnet",
+      "networkUrl": "mock://localhost:3000",
+      "faucetUrl": "mock://faucet.localhost:3000",
+      "transactionDelay": 1000,
+      "connectionDelay": 500,
+      "revokeDelay": 800
+    }
+  },
+  "ui": {
+    "themes": {
+      "dark": {
+        "primary": "#3b82f6",
+        "secondary": "#6b7280",
+        "success": "#10b981",
+        "warning": "#f59e0b",
+        "error": "#ef4444",
+        "background": "#1f2937",
+        "surface": "#374151"
+      }
+    },
+    "components": {
+      "blockchainToggle": {
+        "showInfoByDefault": false,
+        "animationDuration": 200,
+        "statusIndicatorSize": "small"
+      },
+      "fileUpload": {
+        "maxFileSize": 10485760,
+        "allowedTypes": ["*"],
+        "showProgress": true,
+        "enableDragDrop": true
+      }
+    }
+  },
+  "storage": {
+    "localStorage": {
+      "keyPrefix": "expiryX_",
+      "enableCompression": false,
+      "maxSize": 5242880
+    },
+    "sessionStorage": {
+      "keyPrefix": "expiryX_session_",
+      "autoCleanup": true
+    }
+  },
+  "debugging": {
+    "enableLogs": true,
+    "logLevel": "info",
+    "enablePerformanceTracking": true,
+    "enableErrorReporting": true,
+    "consoleCommands": {
+      "testBlockchain": "testJSONMockBlockchain()",
+      "showConfig": "showJSONMockConfig()",
+      "exportData": "exportJSONMockData()",
+      "debugPermissions": "debugPermissions()",
+      "debugApp": "debugExpiryXApp"
+    }
+  },
+  "features": {
+    "permissions": {
+      "defaultExpiry": "1hour",
+      "maxExpiry": "30days",
+      "allowRevoke": true,
+      "autoCleanupExpired": true
+    },
+    "files": {
+      "enableEncryption": false,
+      "compressionLevel": 6,
+      "enableThumbnails": false,
+      "supportedFormats": ["pdf", "docx", "txt", "jpg", "png"]
+    },
+    "wallet": {
+      "autoConnect": false,
+      "supportedWallets": ["petra", "pontem", "martian"],
+      "requireConnection": false
+    }
+  },
+  "metadata": {
+    "version": "2.0.0",
+    "lastUpdated": "2025-08-14T00:00:00.000Z",
+    "configType": "unified",
+    "environment": "development"
+  }
+}
